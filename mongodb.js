@@ -14,24 +14,40 @@ MongoClient.connect(
 
     const db = client.db(database);
 
-    // Regresa un cursor
-    db.collection("tasks")
-      .find({ completed: false })
-      .toArray((error, tareas) => {
-        if (error) {
-          return log.error("Ocurrió un error al traer las tareas");
+    db.collection("users")
+      .updateOne(
+        { _id: ObjectID("62282d83f5d12a605ccf99d3") },
+        {
+          $set: {
+            name: "Luis Fer Franco",
+            title: "Master of the Universe",
+          },
+          $inc: {
+            nivel: 10,
+          },
         }
-        console.log(tareas);
+      )
+      .then((res) => {
+        console.log("Updated ", res);
+      })
+      .catch((error) => {
+        console.log(error);
       });
 
-    db.collection("tasks").findOne(
-      { _id: new ObjectID("62282e115d0d3b50e87dc8a4") },
-      (error, task) => {
-        if (error) {
-          return log.error("Ocurrió un error al traer la tarea");
+    db.collection("tasks")
+      .updateMany(
+        { completed: true },
+        {
+          $set: {
+            completed: false,
+          },
         }
-        console.log(task);
-      }
-    );
+      )
+      .then((res) => {
+        console.log("Updated " + res.modifiedCount);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }
 );
