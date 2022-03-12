@@ -26,12 +26,13 @@ router.get("/users/:id", async (req, res) => {
   const _id = req.params.id;
 
   try {
-    const user = User.findById(_id);
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(404).send();
     }
     res.status(201).send(user);
   } catch (e) {
+    console.log(e);
     res.status(500).send(e);
   }
 });
@@ -48,24 +49,22 @@ router.patch("/users/:id", async (req, res) => {
   }
 
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-      // El método nos regresará el nuevo usuario, y no por
-      // el que buscamos
-      new: true,
-
-      // Se corren los validadores para tener datos correctos
-      // y limpios
-      runValidators: true,
-    });
+    const user = await User.findById(req.params.id);
 
     // Si no se encontró el usuario, se manda un 404 (not found)
     if (!user) {
       return res.status(404).send();
     }
+
+    // Revisamos cada uno de los updates (los que se pueden actualizar) y los actualizamos al valor que haya venido del request
+    updates.forEach((update) => (user[update] = req.body[update]));
+    await user.save();
+
     res.send(user);
   } catch (error) {
     // Los errores pueden deberse a un problema en el server (500)
     // o a que se envió mal el id (400)
+    console.log(error);
     res.status(400).send();
   }
 });

@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const bcrypt = require("bcrypt");
 
-const User = mongoose.model("User", {
+const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -46,5 +47,22 @@ const User = mongoose.model("User", {
     },
   },
 });
+
+// .pre() indica lo que se hará antes de que ocurra el evento (save en este caso)
+// .post() indica lo que se hará después de que ocurra el evento
+// next es un parámetro que indica que se debe continuar con el evento original, si no se llama a next() se quedará ciclado
+userSchema.pre("save", async function (next) {
+  // this se refiere al documento que se está guardando, se asigna a una constante user para que sea más entendible lo que se hace, aunque no es necesario
+  const user = this;
+
+  // Se verifica si el password ha sido cambiado. Esto ocurre al momento de crear el usuario y al momento de actualizarlo. En ese caso, el password está en texto claro y necesita ser hasheado
+  if (user.isModified("password")) {
+    user.password = await bcrypt.hash(user.password, 8);
+  }
+
+  next();
+});
+
+const User = mongoose.model("User", userSchema);
 
 module.exports = User;
