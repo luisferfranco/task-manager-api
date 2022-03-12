@@ -16,6 +16,9 @@ const userSchema = new mongoose.Schema({
     required: true,
     trim: true,
 
+    // Indica que solo puede haber una cuenta de usuario
+    unique: true,
+
     // Envía en minúsculas a la base de datos
     lowercase: true,
     validate(value) {
@@ -47,6 +50,22 @@ const userSchema = new mongoose.Schema({
     },
   },
 });
+
+userSchema.statics.findByCredentials = async (email, password) => {
+  const hashedPassword = await bcrypt.hash(password, 8);
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new Error("Can't Login");
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    throw new Error("Can't Login");
+  }
+
+  return user;
+};
 
 // .pre() indica lo que se hará antes de que ocurra el evento (save en este caso)
 // .post() indica lo que se hará después de que ocurra el evento
