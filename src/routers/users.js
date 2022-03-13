@@ -1,5 +1,6 @@
 const express = require("express");
 const User = require("../models/user");
+const auth = require("../middleware/auth");
 const router = new express.Router();
 
 router.post("/users", async (req, res) => {
@@ -14,16 +15,38 @@ router.post("/users", async (req, res) => {
   }
 });
 
-router.get("/users", async (req, res) => {
+router.post("/users/login", async (req, res) => {
   try {
-    const users = await User.find({});
-    res.status(201).send(users);
-  } catch (e) {
-    res.status(500).send(e);
+    // Se crea una función para el modelo. Solo se puede hacer si se crea un Schema para el modelo
+    const user = await User.findByCredentials(
+      req.body.email,
+      req.body.password
+    );
+    const token = await user.generateAuthToken();
+
+    res.send({ user, token });
+  } catch (error) {
+    res.status(400).send();
   }
 });
 
-router.get("/users/:id", async (req, res) => {
+router.post("/users/logout", auth, async (req, res) => {
+  try {
+    req.user.tokens = req.user.tokens.filter(
+      (token) => token.token !== req.token
+    );
+    await req.user.save();
+    res.send();
+  } catch (e) {
+    res.status(500).send();
+  }
+});
+
+router.get("/users/me", auth, async (req, res) => {
+  res.send(req.user);
+});
+
+router.get("/users/:id", auth, async (req, res) => {
   const _id = req.params.id;
 
   try {
@@ -38,7 +61,7 @@ router.get("/users/:id", async (req, res) => {
   }
 });
 
-router.patch("/users/:id", async (req, res) => {
+router.patch("/users/:id", auth, async (req, res) => {
   const updates = Object.keys(req.body);
   const allowedUpdate = ["name", "email", "password", "age"];
   const isValidOperation = updates.every((update) =>
@@ -70,7 +93,7 @@ router.patch("/users/:id", async (req, res) => {
   }
 });
 
-router.delete("/users/:id", async (req, res) => {
+router.delete("/users/:id", auth, async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
 
@@ -81,21 +104,6 @@ router.delete("/users/:id", async (req, res) => {
     return res.send(user);
   } catch (error) {
     return res.status(500).send();
-  }
-});
-
-router.post("/users/login", async (req, res) => {
-  try {
-    // Se crea una función para el modelo. Solo se puede hacer si se crea un Schema para el modelo
-    const user = await User.findByCredentials(
-      req.body.email,
-      req.body.password
-    );
-    const token = await user.generateAuthToken();
-
-    res.send({ user, token });
-  } catch (error) {
-    res.status(400).send();
   }
 });
 
