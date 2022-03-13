@@ -5,62 +5,67 @@ const jwt = require("jsonwebtoken");
 
 const Task = require("./task");
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
 
-    // Elimina los espacios al inicio y al final
-    // para mandar datos más limpios a la base
-    trim: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    trim: true,
+      // Elimina los espacios al inicio y al final
+      // para mandar datos más limpios a la base
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      trim: true,
 
-    // Indica que solo puede haber una cuenta de usuario
-    unique: true,
+      // Indica que solo puede haber una cuenta de usuario
+      unique: true,
 
-    // Envía en minúsculas a la base de datos
-    lowercase: true,
-    validate(value) {
-      if (!validator.isEmail(value)) {
-        throw new Error("Invalid email address: " + value);
-      }
-    },
-  },
-  age: {
-    type: Number,
-    default: 0,
-    validate(value) {
-      if (value < 0) {
-        throw new Error("Invalid age value: " + value);
-      }
-    },
-  },
-  password: {
-    type: String,
-    required: true,
-    trim: true,
-    validate(value) {
-      if (value.length < 7) {
-        throw new Error("El password debe ser de al menos 7 caracteres");
-      }
-      if (value.includes("password")) {
-        throw new Error("El password no debe contener password");
-      }
-    },
-  },
-  tokens: [
-    {
-      token: {
-        type: String,
-        required: true,
+      // Envía en minúsculas a la base de datos
+      lowercase: true,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error("Invalid email address: " + value);
+        }
       },
     },
-  ],
-});
+    age: {
+      type: Number,
+      default: 0,
+      validate(value) {
+        if (value < 0) {
+          throw new Error("Invalid age value: " + value);
+        }
+      },
+    },
+    password: {
+      type: String,
+      required: true,
+      trim: true,
+      validate(value) {
+        if (value.length < 7) {
+          throw new Error("El password debe ser de al menos 7 caracteres");
+        }
+        if (value.includes("password")) {
+          throw new Error("El password no debe contener password");
+        }
+      },
+    },
+    tokens: [
+      {
+        token: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  }
+);
 
 // Relación con tareas
 userSchema.virtual("tasks", {
