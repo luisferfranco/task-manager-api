@@ -60,6 +60,13 @@ const userSchema = new mongoose.Schema({
   ],
 });
 
+// Relación con tareas
+userSchema.virtual("tasks", {
+  ref: "Task",
+  localField: "_id",
+  foreignField: "owner",
+});
+
 // Los estáticos se ejecutan en las clases, los métodos en las instancias
 userSchema.methods.generateAuthToken = async function () {
   const user = this;
