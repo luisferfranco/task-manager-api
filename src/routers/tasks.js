@@ -17,6 +17,8 @@ router.post("/tasks", auth, async (req, res) => {
   }
 });
 
+// GET tasks?completed=true
+// GET tasks?limit=10&skip=0
 router.get("/tasks", auth, async (req, res) => {
   const match = {};
 
@@ -29,6 +31,11 @@ router.get("/tasks", auth, async (req, res) => {
       .populate({
         path: "tasks",
         match,
+        options: {
+          // Indica el número de documentos para traer. Si viene vacío, el parámetro se ignora
+          limit: parseInt(req.query.limit),
+          skip: parseInt(req.query.skip),
+        },
       })
       .execPopulate();
     res.status(201).send(req.user.tasks);
