@@ -71,7 +71,7 @@ router.get("/users/:id", auth, async (req, res) => {
   }
 });
 
-router.patch("/users/:id", auth, async (req, res) => {
+router.patch("/users/me", auth, async (req, res) => {
   const updates = Object.keys(req.body);
   const allowedUpdate = ["name", "email", "password", "age"];
   const isValidOperation = updates.every((update) =>
@@ -83,35 +83,22 @@ router.patch("/users/:id", auth, async (req, res) => {
   }
 
   try {
-    const user = await User.findById(req.params.id);
-
-    // Si no se encontró el usuario, se manda un 404 (not found)
-    if (!user) {
-      return res.status(404).send();
-    }
-
     // Revisamos cada uno de los updates (los que se pueden actualizar) y los actualizamos al valor que haya venido del request
-    updates.forEach((update) => (user[update] = req.body[update]));
-    await user.save();
+    updates.forEach((update) => (req.user[update] = req.body[update]));
+    await req.user.save();
 
-    res.send(user);
+    res.send(req.user);
   } catch (error) {
     // Los errores pueden deberse a un problema en el server (500)
     // o a que se envió mal el id (400)
-    console.log(error);
     res.status(400).send();
   }
 });
 
-router.delete("/users/:id", auth, async (req, res) => {
+router.delete("/users/me", auth, async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-
-    if (!user) {
-      return res.status(404).send();
-    }
-
-    return res.send(user);
+    await req.user.remove();
+    return res.send(req.user);
   } catch (error) {
     return res.status(500).send();
   }
