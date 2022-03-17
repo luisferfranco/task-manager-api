@@ -4,7 +4,7 @@ const User = require("../models/user");
 const auth = async (req, res, next) => {
   try {
     const token = req.header("Authorization").replace("Bearer ", "");
-    const decoded = jwt.verify(token, "ThisIsMySecret");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // En el token viene codificado el _id, por lo que después de decodificarlo podemos usarlo para encontrar el usuario
 
